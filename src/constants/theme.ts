@@ -1,40 +1,94 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-import '@/global.css';
-
 import { Platform } from 'react-native';
 
+// PCM Color Palette
+// Single source of truth. No dark mode. Import Colors wherever needed.
+
 export const Colors = {
-  light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
-  },
-  dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
-  },
+  // Screen backgrounds
+  /** Default content screen background */
+  background: '#f8f9ff',
+  /** Login / auth screen background */
+  bgLogin: '#fafcff',
+  /** Secondary dark layer */
+  bgDark: '#0b1c2e',
+
+  // Surfaces (cards, panels, inputs)
+  /** White card / dialog */
+  surface: '#ffffff',
+  /** Card with slight transparency */
+  surfaceCard: 'rgba(255,255,255,0.97)',
+  /** Subtle element background (rows, chips) */
+  surfaceElement: '#F0F0F3',
+  /** Selected state background */
+  surfaceSelected: '#E0E1E6',
+  /** Text input background */
+  surfaceInput: 'rgba(248,249,255,0.85)',
+  /** Card icon background, subtle panels */
+  surfaceContainer: '#e5eeff',
+
+  // Text
+  /** Primary body text */
+  textPrimary: '#0b1c30',
+  /** Secondary / supporting text */
+  textSecondary: '#45464d',
+  /** Muted / disabled text */
+  textMuted: '#76777d',
+  /** Text on dark / colored surfaces */
+  textInverse: '#ffffff',
+  /** Hyperlinks */
+  textLink: '#000099',
+  /** Input placeholder */
+  textPlaceholder: '#c6c6cd',
+
+  // Brand / Action
+  /** Primary brand blue-navy */
+  brand: '#000099',
+  // Inverse brand (for text on brand color or dark backgrounds)
+  brandInverse: '#ffffff',
+  /** Darker brand (hover / pressed) */
+  brandDark: '#000099',
+
+  // Borders
+  /** Standard border (inputs, cards) */
+  border: '#76777d',
+  /** Subtle divider */
+  borderSubtle: '#c6c6cd',
+
+  // Buttons
+  btnPrimary: '#000099',
+  btnPrimaryText: '#ffffff',
+
+  // Form controls
+  checkboxActive: '#0b1c30',
+
+  // Header / TopBar
+  headerBg: '#02023d',
+  headerText: '#ffffff',
+
+  // App Footer (global — dark navy, used on all screens)
+  appFooterBg: '#02023d',
+  appFooterText: '#ffffff',
+  appFooterTextMuted: 'rgba(255,255,255,0.75)',
+
+  // Danger / destructive actions
+  danger: '#ba1a1a',
+  dangerBg: '#ffdad6',
+
+  // Wizard step accents
+  stepFrom: '#16a34a',  // Origen (From) header — green
+  stepTo: '#d97706',    // Destino (To) header — amber
+  stepDone: '#16a34a',  // completed step circle
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+export type ColorKey = keyof typeof Colors;
+
+// Typography
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
     rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
   },
   default: {
@@ -43,13 +97,9 @@ export const Fonts = Platform.select({
     rounded: 'normal',
     mono: 'monospace',
   },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
 });
+
+// Spacing scale (4 pt grid)
 
 export const Spacing = {
   half: 2,
@@ -61,5 +111,6 @@ export const Spacing = {
   six: 64,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
+// Layout
+
 export const MaxContentWidth = 800;
