@@ -22,6 +22,7 @@ import { VerificationRequiredError, login, logout } from '@/services/auth';
 
 export default function LoginScreen() {
   const { height } = useWindowDimensions();
+  const [loginMode, setLoginMode] = useState<'admin' | 'worker'>('worker');
   const [rememberMe, setRememberMe] = useState(false);
   const [checking, setChecking] = useState(true);
 
@@ -41,23 +42,40 @@ export default function LoginScreen() {
     }
     checkSession();
   }, []);
+
   const [username, setUsername] = useState('');
+  const [wgCode, setWgCode] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function switchMode(mode: 'admin' | 'worker') {
+    setLoginMode(mode);
+    setError(null);
+  }
 
   async function handleLogin() {
     if (loading) return;
     setError(null);
 
-    if (!username.trim() || !password) {
-      setError('Ingresa usuario y contraseña.');
-      return;
+    if (loginMode === 'worker') {
+      if (!wgCode.trim() || !password) {
+        setError('Ingresa el código de grupo y contraseña.');
+        return;
+      }
+    } else {
+      if (!username.trim() || !password) {
+        setError('Ingresa usuario y contraseña.');
+        return;
+      }
     }
 
     setLoading(true);
     try {
-      await login({ username: username.trim(), password, rememberMe });
+      const payload = loginMode === 'worker'
+        ? { wgCode: wgCode.trim(), password, rememberMe }
+        : { username: username.trim(), password, rememberMe };
+      await login(payload);
       router.replace('/dashboard');
     } catch (e) {
       if (e instanceof VerificationRequiredError) {
@@ -106,28 +124,68 @@ export default function LoginScreen() {
             {/* Header */}
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>Ingreso al Sistema</Text>
-              <Text style={styles.cardSubtitle}>Gestión de Control Industrial PCM</Text>
+              <Text style={styles.cardSubtitle}>Gestión de Control Industrial CM</Text>
             </View>
 
             {/* Form */}
             <View style={styles.form}>
 
-              {/* Usuario */}
-              <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>USUARIO O CORREO</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Ingrese su usuario"
-                  placeholderTextColor={Colors.textPlaceholder}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  keyboardType="email-address"
-                  returnKeyType="next"
-                  value={username}
-                  onChangeText={setUsername}
-                  editable={!loading}
-                />
+              {/* Mode toggle */}
+              <View style={styles.modeToggle}>
+                <TouchableOpacity
+                  style={[styles.modeBtn, loginMode === 'worker' && styles.modeBtnActive]}
+                  onPress={() => switchMode('worker')}
+                  activeOpacity={0.8}>
+                  <Text style={[styles.modeBtnText, loginMode === 'worker' && styles.modeBtnTextActive]}>
+                    Trabajador
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modeBtn, loginMode === 'admin' && styles.modeBtnActive]}
+                  onPress={() => switchMode('admin')}
+                  activeOpacity={0.8}>
+                  <Text style={[styles.modeBtnText, loginMode === 'admin' && styles.modeBtnTextActive]}>
+                    Administrador
+                  </Text>
+                </TouchableOpacity>
               </View>
+
+              {/* Admin: username field */}
+              {loginMode === 'admin' && (
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>USUARIO O CORREO</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Ingrese su usuario"
+                    placeholderTextColor={Colors.textPlaceholder}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    keyboardType="email-address"
+                    returnKeyType="next"
+                    value={username}
+                    onChangeText={setUsername}
+                    editable={!loading}
+                  />
+                </View>
+              )}
+
+              {/* Worker: wgCode field */}
+              {loginMode === 'worker' && (
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>CÓDIGO DE GRUPO</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Ej. WG01"
+                    placeholderTextColor={Colors.textPlaceholder}
+                    autoCapitalize="characters"
+                    autoCorrect={false}
+                    returnKeyType="next"
+                    value={wgCode}
+                    onChangeText={setWgCode}
+                    editable={!loading}
+                  />
+                </View>
+              )}
 
               {/* Contraseña */}
               <View style={styles.fieldGroup}>
@@ -148,7 +206,7 @@ export default function LoginScreen() {
               {/* Error */}
               {error && <Text style={styles.errorText}>{error}</Text>}
 
-              {/* Recordarme + Olvidaste */}
+              {/* Recordarme */}
               <View style={styles.optionsGroup}>
                 <TouchableOpacity
                   style={styles.checkboxRow}
@@ -177,19 +235,23 @@ export default function LoginScreen() {
                 )}
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.forgotLinkBtn} activeOpacity={0.7} onPress={() => router.push('/forgot-password')}>
-                <Text style={styles.forgotLink}>¿Olvidaste tu contraseña?</Text>
-              </TouchableOpacity>
-
-              {/* Link a registro */}
-              <View style={styles.registerRow}>
-                <Text style={styles.registerText}>¿No tienes cuenta? </Text>
-                <Link href="/register" asChild>
-                  <TouchableOpacity activeOpacity={0.7}>
-                    <Text style={styles.registerLink}>Regístrate</Text>
+              {/* Admin-only links */}
+              {loginMode === 'admin' && (
+                <>
+                  <TouchableOpacity style={styles.forgotLinkBtn} activeOpacity={0.7} onPress={() => router.push('/forgot-password')}>
+                    <Text style={styles.forgotLink}>¿Olvidaste tu contraseña?</Text>
                   </TouchableOpacity>
-                </Link>
-              </View>
+
+                  <View style={styles.registerRow}>
+                    <Text style={styles.registerText}>¿No tienes cuenta? </Text>
+                    <Link href="/register" asChild>
+                      <TouchableOpacity activeOpacity={0.7}>
+                        <Text style={styles.registerLink}>Regístrate</Text>
+                      </TouchableOpacity>
+                    </Link>
+                  </View>
+                </>
+              )}
 
             </View>
           </View>
@@ -359,6 +421,38 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontWeight: '700',
     color: Colors.textLink,
+  },
+
+  // Mode toggle
+  modeToggle: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surfaceInput,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: 'hidden',
+  },
+  modeBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modeBtnActive: {
+    backgroundColor: Colors.btnPrimary,
+    shadowColor: Colors.brand,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  modeBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    letterSpacing: 0.5,
+  },
+  modeBtnTextActive: {
+    color: Colors.textInverse,
   },
 
   // Button

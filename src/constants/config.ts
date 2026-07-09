@@ -12,4 +12,6 @@ export const STORAGE_KEYS = {
   token: '@pcm/token',
   user: '@pcm/user',
   rememberMe: '@pcm/rememberMe',
+  loginType: '@pcm/loginType',
+  workgroup: '@pcm/workgroup',
 } as const;

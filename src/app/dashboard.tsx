@@ -1,12 +1,12 @@
 import { router } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppFooter } from '@/components/app-footer';
 import { Colors, Spacing } from '@/constants/theme';
-import { logout } from '@/services/auth';
+import { getLoginType, getStoredUser, getStoredWorkgroup, logout } from '@/services/auth';
 
 // ── Module Card ────────────────────────────────────────────────────────────────
 
@@ -69,14 +69,34 @@ const HEADER_HEIGHT = 56;
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const [menuVisible, setMenuVisible] = useState(false);
-  const [supportVisible, setSupportVisible] = useState(false);
+  const [loginType, setLoginType] = useState<'admin' | 'worker' | null>(null);
+  const [displayName, setDisplayName] = useState('');
+  const [avatarInitials, setAvatarInitials] = useState('');
 
-  function openMenu() { setSupportVisible(false); setMenuVisible(v => !v); }
-  function openSupport() { setMenuVisible(false); setSupportVisible(v => !v); }
-  function closeAll() { setMenuVisible(false); setSupportVisible(false); }
+  useEffect(() => {
+    async function loadSession() {
+      const type = await getLoginType();
+      setLoginType(type);
+      if (type === 'worker') {
+        const wg = await getStoredWorkgroup();
+        const name = wg?.wgCode ?? 'Trabajador';
+        setDisplayName(name);
+        setAvatarInitials(name.slice(0, 2).toUpperCase());
+      } else {
+        const user = await getStoredUser();
+        const name = user?.username ?? 'Admin';
+        setDisplayName(name);
+        setAvatarInitials(name.slice(0, 2).toUpperCase());
+      }
+    }
+    loadSession();
+  }, []);
+
+  function openMenu() { setMenuVisible(v => !v); }
+  function closeMenu() { setMenuVisible(false); }
 
   async function handleLogout() {
-    closeAll();
+    closeMenu();
     await logout();
     router.replace('/');
   }
@@ -86,12 +106,12 @@ export default function DashboardScreen() {
       {/* Top bar */}
       <SafeAreaView style={styles.headerSafe} edges={['top', 'left', 'right']}>
         <View style={styles.header}>
-          <Text style={styles.headerBrand}>PCM</Text>
+          <Text style={styles.headerBrand}>CM</Text>
 
           {/* Avatar — opens profile menu */}
           <TouchableOpacity onPress={openMenu} activeOpacity={0.8}>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>AD</Text>
+              <Text style={styles.avatarText}>{avatarInitials}</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -111,15 +131,22 @@ export default function DashboardScreen() {
             description="Gestión y seguimiento de tendido de cables y conectividad. Monitoreo de rutas, estado de instalación y reportes de certificación."
             onPress={() => router.push('/cables')}
           />
+          {loginType === 'admin' && (
+            <ModuleCard
+              title="Gestión de Grupos"
+              description="Creación y edición de grupos de trabajo. Administra códigos de grupo, líderes, capataces y supervisores."
+              onPress={() => router.push('/workgroups')}
+            />
+          )}
         </View>
       </ScrollView>
 
       {/* Global footer */}
-      <AppFooter onSupportPress={openSupport} />
+      <AppFooter />
 
-      {/* Backdrop — closes any open menu */}
-      {(menuVisible || supportVisible) && (
-        <Pressable style={styles.backdrop} onPress={closeAll} />
+      {/* Backdrop — closes profile menu */}
+      {menuVisible && (
+        <Pressable style={styles.backdrop} onPress={closeMenu} />
       )}
 
       {/* Profile dropdown */}
@@ -127,9 +154,14 @@ export default function DashboardScreen() {
         <View style={[styles.dropdown, { top: insets.top + HEADER_HEIGHT }]}>
           <View style={styles.dropdownUserRow}>
             <View style={styles.dropdownAvatar}>
-              <Text style={styles.dropdownAvatarText}>AD</Text>
+              <Text style={styles.dropdownAvatarText}>{avatarInitials}</Text>
             </View>
-            <Text style={styles.dropdownUserName}>Admin User</Text>
+            <View>
+              <Text style={styles.dropdownUserRole}>
+                {loginType === 'worker' ? 'Grupo' : 'Administrador'}
+              </Text>
+              <Text style={styles.dropdownUserName}>{displayName}</Text>
+            </View>
           </View>
           <View style={styles.dropdownDivider} />
           <TouchableOpacity style={styles.dropdownLogoutBtn} onPress={handleLogout} activeOpacity={0.7}>
@@ -143,37 +175,6 @@ export default function DashboardScreen() {
         </View>
       )}
 
-      {/* Support dropdown — anchored above the footer */}
-      {supportVisible && (
-        <View style={[styles.dropdown, styles.supportDropdown]}>
-          <View style={styles.dropdownHeader}>
-            <SymbolView
-              name={{ ios: 'headphones', android: 'headset_mic', web: 'headset_mic' }}
-              tintColor={Colors.brand}
-              size={20}
-            />
-            <Text style={styles.dropdownHeaderText}>Soporte Técnico</Text>
-          </View>
-          <View style={styles.dropdownDivider} />
-          <View style={styles.supportRow}>
-            <SymbolView
-              name={{ ios: 'envelope', android: 'email', web: 'email' }}
-              tintColor={Colors.textMuted}
-              size={16}
-            />
-            <Text style={styles.supportValue}>sistemas@intimecontrol.com</Text>
-          </View>
-          <View style={styles.dropdownDivider} />
-          <View style={styles.supportRow}>
-            <SymbolView
-              name={{ ios: 'phone', android: 'phone', web: 'phone' }}
-              tintColor={Colors.textMuted}
-              size={16}
-            />
-            <Text style={styles.supportValue}>+52 811 334 0057</Text>
-          </View>
-        </View>
-      )}
     </View>
   );
 }
@@ -370,6 +371,14 @@ const styles = StyleSheet.create({
     color: Colors.textInverse,
     letterSpacing: 0.5,
   },
+  dropdownUserRole: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1,
+    color: Colors.textMuted,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
   dropdownUserName: {
     fontSize: 15,
     fontWeight: '600',
@@ -379,37 +388,6 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: Colors.borderSubtle,
     marginHorizontal: 0,
-  },
-  dropdownHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    gap: 10,
-  },
-  dropdownHeaderText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  supportDropdown: {
-    top: undefined,
-    bottom: 60,
-    right: 12,
-    minWidth: 260,
-  },
-  supportRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 10,
-  },
-  supportValue: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    flex: 1,
-    flexWrap: 'wrap',
   },
   dropdownLogoutBtn: {
     flexDirection: 'row',

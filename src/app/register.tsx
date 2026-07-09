@@ -87,7 +87,7 @@ export default function RegisterScreen() {
             {/* Header */}
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>Crear Cuenta</Text>
-              <Text style={styles.cardSubtitle}>Registro al Sistema de Control PCM</Text>
+              <Text style={styles.cardSubtitle}>Registro al Sistema de Control CM</Text>
             </View>
 
             {/* Form */}
