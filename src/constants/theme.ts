@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-// PCM Color Palette
+// CM Color Palette
 // Single source of truth. No dark mode. Import Colors wherever needed.
 
 export const Colors = {

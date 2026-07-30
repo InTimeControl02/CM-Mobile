@@ -9,9 +9,9 @@ export const API_KEY = process.env.EXPO_PUBLIC_API_KEY ?? '';
 
 /** AsyncStorage keys */
 export const STORAGE_KEYS = {
-  token: '@pcm/token',
-  user: '@pcm/user',
-  rememberMe: '@pcm/rememberMe',
-  loginType: '@pcm/loginType',
-  workgroup: '@pcm/workgroup',
+  token: '@cm/token',
+  user: '@cm/user',
+  rememberMe: '@cm/rememberMe',
+  loginType: '@cm/loginType',
+  workgroup: '@cm/workgroup',
 } as const;
