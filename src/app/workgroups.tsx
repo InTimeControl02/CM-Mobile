@@ -3,7 +3,9 @@ import { SymbolView } from 'expo-symbols';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -154,7 +156,10 @@ function FormModal({ mode, initial, onClose, onSave, onDelete }: FormModalProps)
   return (
     <Modal visible animationType="slide" transparent onRequestClose={onClose}>
       <Pressable style={styles.modalBackdrop} onPress={onClose} />
-      <View style={styles.modalSheet}>
+      <KeyboardAvoidingView
+        style={styles.modalSheet}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <View style={styles.modalHandle} />
 
         <Text style={styles.modalTitle}>
@@ -232,7 +237,7 @@ function FormModal({ mode, initial, onClose, onSave, onDelete }: FormModalProps)
             )}
           </View>
         </ScrollView>
-      </View>
+      </KeyboardAvoidingView>
 
       {/* Confirm delete modal */}
       <Modal

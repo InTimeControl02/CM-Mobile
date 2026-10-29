@@ -3,7 +3,6 @@ import { useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -13,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppFooter } from '@/components/app-footer';
+import { KeyboardAwareScreen } from '@/components/keyboard-aware-screen';
 import { Colors } from '@/constants/theme';
 import { ApiError } from '@/services/api';
 import { forgotPassword, resetPassword, verifyResetCode } from '@/services/auth';
@@ -269,12 +269,8 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <View style={s.root}>
-      <SafeAreaView style={s.safeArea} edges={['top', 'left', 'right']}>
-        <ScrollView
-          contentContainerStyle={s.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
+    <KeyboardAwareScreen style={s.root}>
+      <SafeAreaView style={s.scrollContent} edges={['top', 'left', 'right']}>
 
           <View style={s.logoWrapper}>
             <Image
@@ -293,10 +289,9 @@ export default function ForgotPasswordScreen() {
           <TouchableOpacity style={s.loginRow} onPress={() => router.replace('/')} activeOpacity={0.7}>
             <Text style={s.loginText}>← Volver al inicio de sesión</Text>
           </TouchableOpacity>
-        </ScrollView>
-        <AppFooter />
       </SafeAreaView>
-    </View>
+      <AppFooter />
+    </KeyboardAwareScreen>
   );
 }
 

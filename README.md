@@ -1,56 +1,95 @@
-# Welcome to your Expo app 👋
+# CM Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+React Native + Expo app for CM internal operations.
 
-## Get started
+## Pinned toolchain versions
 
-1. Install dependencies
+**Do NOT upgrade without a dedicated branch + full regression test.**
 
+| Tool | Version | Notes |
+|---|---|---|
+| Node.js | 20.x LTS | See `.nvmrc` |
+| JDK | 17 (Temurin 17.0.19+) | `JAVA_HOME` env var |
+| Expo SDK | 56.0.22 | Pinned exact in `package.json` |
+| React Native | 0.85.3 | Pinned exact |
+| Gradle | 8.13 | `android/gradle/wrapper/gradle-wrapper.properties` |
+| Android compileSdk | 36 | |
+| Android NDK | 27.1.12297006 | Required for C++ native modules |
+| Android CMake | 3.22.1 | |
+| Android Build Tools | 36.0.0 | |
+
+## Environment prerequisites
+
+- Install path for **Android SDK, project, and Gradle home MUST NOT contain spaces** (breaks ld.lld C++ linker on Windows).
+- Required disk space: 15+ GB free on project drive.
+
+### Windows env vars (set in system)
+
+```
+ANDROID_HOME        D:\android-sdk
+ANDROID_SDK_ROOT    D:\android-sdk
+JAVA_HOME           C:\Program Files\Eclipse Adoptium\jdk-17.0.19.10-hotspot
+GRADLE_USER_HOME    D:\gradle-home
+```
+
+Add `%JAVA_HOME%\bin` to `Path` (at top).
+
+Verify after opening new terminal:
+
+```powershell
+$env:ANDROID_HOME
+$env:JAVA_HOME
+$env:GRADLE_USER_HOME
+java -version   # must print 17
+```
+
+## First-time setup
+
+1. Clone to path without spaces (e.g. `D:\CM-Mobile`).
+2. Install deps:
    ```bash
    npm install
    ```
-
-2. Start the app
-
+3. Create `.env` from `.env_example`, fill `EXPO_PUBLIC_API_BASE_URL` and `EXPO_PUBLIC_API_KEY`.
+4. Generate android/ios folders:
    ```bash
-   npx expo start
+   npx expo prebuild --platform android
    ```
 
-In the output, you'll find options to open the app in a
+## Build APK
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Debug:
 
 ```bash
-npm run reset-project
+cd android
+.\gradlew assembleDebug
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Output: `android/app/build/outputs/apk/debug/app-debug.apk`
 
-### Other setup steps
+Release:
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+cd android
+.\gradlew assembleRelease
+```
 
-## Learn more
+## Upgrade policy
 
-To learn more about developing your project with Expo, look at the following resources:
+Mobile toolchain breaks on upgrade. Rules:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+1. **Never** upgrade dependencies directly on `main`.
+2. Create branch `upgrade-expo-NN` for each SDK upgrade.
+3. Read Expo SDK release notes before: https://expo.dev/changelog
+4. Run `npx expo install --fix` only inside upgrade branch.
+5. Test every screen + build APK + install on physical device before merge.
+6. Only upgrade when: forced by Play Store `targetSdk` deadline, security fix, or needed feature.
 
-## Join the community
+Google raises `targetSdkVersion` yearly (Aug deadline). That's the only mandatory annual upgrade.
 
-Join our community of developers creating universal apps.
+## Troubleshooting
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- **`Unsupported class file major version 69`**: JDK 25 in PATH. Fix `JAVA_HOME` to JDK 17, move `%JAVA_HOME%\bin` to top of `Path`.
+- **`ld.lld: error: undefined symbol: std::__ndk1::mutex::lock()`**: SDK or Gradle home path contains spaces. Move to path without spaces.
+- **`Espacio en disco insuficiente`**: free 15+ GB; delete `.cxx` folders in `node_modules/react-native-screens/android/` and `node_modules/react-native-worklets/android/`.
+- **`Access denied for user ...@localhost`**: backend MySQL user missing or wrong password. Check `.env` of backend.

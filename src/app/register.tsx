@@ -3,7 +3,6 @@ import { useState } from 'react';
 import {
   ActivityIndicator,
   Image,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -13,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppFooter } from '@/components/app-footer';
+import { KeyboardAwareScreen } from '@/components/keyboard-aware-screen';
 import { Colors } from '@/constants/theme';
 import { ApiError } from '@/services/api';
 import { register } from '@/services/auth';
@@ -64,12 +64,8 @@ export default function RegisterScreen() {
   }
 
   return (
-    <View style={styles.root}>
-      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
+    <KeyboardAwareScreen style={styles.root}>
+      <SafeAreaView style={styles.scrollContent} edges={['top', 'left', 'right']}>
 
           {/* Logo */}
           <View style={styles.logoWrapper}>
@@ -190,11 +186,9 @@ export default function RegisterScreen() {
 
             </View>
           </View>
-        </ScrollView>
-
-        <AppFooter />
       </SafeAreaView>
-    </View>
+      <AppFooter />
+    </KeyboardAwareScreen>
   );
 }
 

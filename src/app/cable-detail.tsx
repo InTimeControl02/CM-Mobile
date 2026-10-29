@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   ScrollView,
@@ -663,7 +664,10 @@ export default function CableDetailScreen() {
   }
 
   return (
-    <View style={s.root}>
+    <KeyboardAvoidingView
+      style={s.root}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <SafeAreaView style={s.headerSafe} edges={['top', 'left', 'right']}>
         <View style={s.header}>
           <TouchableOpacity style={s.backBtn} onPress={() => router.replace('/cables')} activeOpacity={0.7}>
@@ -691,7 +695,7 @@ export default function CableDetailScreen() {
       )}
 
       <AppFooter />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

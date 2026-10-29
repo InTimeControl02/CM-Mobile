@@ -4,24 +4,22 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  useWindowDimensions,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppFooter } from '@/components/app-footer';
+import { KeyboardAwareScreen } from '@/components/keyboard-aware-screen';
 import { Colors } from '@/constants/theme';
 import { STORAGE_KEYS } from '@/constants/config';
 import { ApiError } from '@/services/api';
 import { VerificationRequiredError, login, logout } from '@/services/auth';
 
 export default function LoginScreen() {
-  const { height } = useWindowDimensions();
   const [loginMode, setLoginMode] = useState<'admin' | 'worker'>('worker');
   const [rememberMe, setRememberMe] = useState(false);
   const [checking, setChecking] = useState(true);
@@ -99,13 +97,9 @@ export default function LoginScreen() {
   if (checking) return null;
 
   return (
-    <View style={styles.root}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
-        {/* Login area — fills at least full screen height */}
-        <SafeAreaView style={[styles.loginArea, { minHeight: height }]} edges={['top', 'left', 'right']}>
+    <KeyboardAwareScreen style={styles.root}>
+        {/* Login area */}
+        <SafeAreaView style={styles.loginArea} edges={['top', 'left', 'right']}>
 
           {/* Logo */}
           <View style={styles.logoWrapper}>
@@ -259,20 +253,16 @@ export default function LoginScreen() {
 
         {/* Footer al fondo de la página, scrollea con el contenido */}
         <AppFooter />
-      </ScrollView>
-    </View>
+    </KeyboardAwareScreen>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
-    flex: 1,
     backgroundColor: Colors.bgLogin,
   },
-  scrollContent: {
-    flexGrow: 1,
-  },
   loginArea: {
+    flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 16,
